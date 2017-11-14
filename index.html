@@ -1,189 +1,170 @@
-<!---------------------------------------------------------------
-Copyright (C) 2017 Oliver Mayer <mayer($)adbk-nuernberg.de>
-($) is for @
-
-This program is free software. It comes without any warranty, to
-the extent permitted by applicable law. You can redistribute it
-and/or modify it under the terms of the Do What The Fuck You Want
-To Public License, Version 2, as published by Sam Hocevar. See
-http://www.wtfpl.net/ for more details.
----------------------------------------------------------------->
-
 <!DOCTYPE html>
 <html>
-<head>
-<title>Dynamische Akustische Forschung</title>
-<style>
-    body {
-       // width: 35em;
-        margin: 0 0;//auto;
-        font-family: Tahoma, Verdana, Arial, sans-serif;
-        color: #aaa;
-        background-color: #000;
-    }
+    <head>
+        <title>Dynamische Akustische Forschung</title>
+        <link rel="stylesheet" href="daf.css" />
+    </head>
+    <body>
 
-    h1 {
-        font-size: 20px;
-        color: #000;
-    }
-</style>
-</head>
-<body>
-<h1>Dynamische Akustische Forschung</h1>
+        <h1>Dynamische Akustische Forschung</h1>
 
+        <div align="right" style="margin-right: 50px;">
 
-<div align="right" style="margin-right: 50px;">
+            <a target="_blank" title="DAF on Facebook" href="https://www.facebook.com/DAF-Dynamische-Akustische-Forschung-452551598457326">
+            <img alt="DAF on facebook" src="facebook_gray.png" border=0 width="25px" height="25px">
+            </a>
+            <!--
+            <a target="_blank" title="follow me on instagram" href="http://www.instagram.com/????">
+            <img alt="DAF on instagram" src="instagram_gray.png" border=0 width="25px" height="25px">
+            </a>
+            -->
 
-<a target="_blank" title="DAF on Facebook" href="https://www.facebook.com/DAF-Dynamische-Akustische-Forschung-452551598457326">
-<img alt="DAF on facebook" src="facebook_gray.png" border=0 width="25px" height="25px">
-</a>
-<!--
-<a target="_blank" title="follow me on instagram" href="http://www.instagram.com/????">
-<img alt="DAF on instagram" src="instagram_gray.png" border=0 width="25px" height="25px">
-</a>
--->
+        </div>
 
-</div>
+        <div>
+            <a id="playButtonGL" >
+                <canvas id="glslCanvas" width="700" height="700" data-fragment="
+                #ifdef GL_ES
+                precision mediump float;
+                #endif
 
-<a id="playButtonGL" >
-<canvas id="glslCanvas" width="700" height="700" data-fragment="
-#ifdef GL_ES
-precision mediump float;
-#endif
+                #define PI 3.1415926535
+                #define HALF_PI 1.57079632679
 
-#define PI 3.1415926535
-#define HALF_PI 1.57079632679
+                uniform vec2 u_mouse;
+                uniform vec2 u_resolution;
+                uniform float u_time;
+                uniform float u_playing;
+                uniform float u_volume;
 
-uniform vec2 u_mouse;
-uniform vec2 u_resolution;
-uniform float u_time;
-uniform float u_playing;
-uniform float u_volume;
+                //uniform sampler2D u_tex0;
 
-//uniform sampler2D u_tex0;
-
-float edgesmooth = 0.03;
+                float edgesmooth = 0.03;
 
 
-float nsinc(float x, float t) {
-    if (x == 0.0)
-        return 1.0;
-    else
-        return 1.0 + 1.5*sin(x - t*3.5)/x;
-}
+                float nsinc(float x, float t) {
+                    if (x == 0.0)
+                        return 1.0;
+                    else
+                        return 1.0 + 1.5*sin(x - t*3.5)/x;
+                }
 
-float euklid(vec2 v1, vec2 v2) {
-    return sqrt((v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y -
-v2.y));
-}
-
-
-float pauseSymbol(vec2 st, vec2 pos, vec2 size) {
-
-    float v = smoothstep(0.0, edgesmooth, st.x - pos.x) - smoothstep(edgesmooth, 0.0, pos.x + size.x - st.x);
-    v *= smoothstep(0.0, edgesmooth, st.y - pos.y) - smoothstep(edgesmooth, 0.0, pos.y + size.y - st.y);
-    v *= (1.0 - smoothstep(0.0, edgesmooth, st.x - pos.x - size.x/3.0) + smoothstep(edgesmooth, 0.0, pos.x + size.x*2.0/3.0 - st.x));
-    return v;
-}
-
-float playSymbol(vec2 st, vec2 pos, vec2 size) {
-
-    float v = smoothstep(0.0, edgesmooth, st.x - pos.x) - smoothstep(edgesmooth, 0.0, pos.x + size.x - st.x);
-    v *= smoothstep(0.0, edgesmooth, st.y - pos.y) - smoothstep(edgesmooth, 0.0, pos.y + size.y - st.y);
-    v *= smoothstep(0.0 + (st.x-pos.x)/(size.x/(size.y*0.5)), edgesmooth + (st.x-pos.x)/(size.x/(size.y*0.5)), st.y-pos.y);
-    v *= smoothstep((st.x-pos.x)/(size.x/(size.y*0.5)), edgesmooth + (st.x-pos.x)/(size.x/(size.y*0.5)), pos.y + size.y - st.y);
-    return v;
-}
+                float euklid(vec2 v1, vec2 v2) {
+                    return sqrt((v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y -
+                v2.y));
+                }
 
 
-void main() {
-    float val;
-    vec2 st = gl_FragCoord.xy/u_resolution.xy;
-    float xmax = u_resolution.x/u_resolution.y;
-    st.x *= xmax;
+                float pauseSymbol(vec2 st, vec2 pos, vec2 size) {
 
-    edgesmooth = 400.0/u_resolution.y *0.03;
+                    float v = smoothstep(0.0, edgesmooth, st.x - pos.x) - smoothstep(edgesmooth, 0.0, pos.x + size.x - st.x);
+                    v *= smoothstep(0.0, edgesmooth, st.y - pos.y) - smoothstep(edgesmooth, 0.0, pos.y + size.y - st.y);
+                    v *= (1.0 - smoothstep(0.0, edgesmooth, st.x - pos.x - size.x/3.0) + smoothstep(edgesmooth, 0.0, pos.x + size.x*2.0/3.0 - st.x));
+                    return v;
+                }
+
+                float playSymbol(vec2 st, vec2 pos, vec2 size) {
+
+                    float v = smoothstep(0.0, edgesmooth, st.x - pos.x) - smoothstep(edgesmooth, 0.0, pos.x + size.x - st.x);
+                    v *= smoothstep(0.0, edgesmooth, st.y - pos.y) - smoothstep(edgesmooth, 0.0, pos.y + size.y - st.y);
+                    v *= smoothstep(0.0 + (st.x-pos.x)/(size.x/(size.y*0.5)), edgesmooth + (st.x-pos.x)/(size.x/(size.y*0.5)), st.y-pos.y);
+                    v *= smoothstep((st.x-pos.x)/(size.x/(size.y*0.5)), edgesmooth + (st.x-pos.x)/(size.x/(size.y*0.5)), pos.y + size.y - st.y);
+                    return v;
+                }
 
 
-    vec2 mst = u_mouse.xy/u_resolution.xy;
-    mst.x *= xmax;
+                void main() {
+                    float val;
+                    vec2 st = gl_FragCoord.xy/u_resolution.xy;
+                    float xmax = u_resolution.x/u_resolution.y;
+                    st.x *= xmax;
+
+                    edgesmooth = 400.0/u_resolution.y *0.03;
 
 
-    vec2 c = vec2(mst.x + 0.1*sin(u_time*(0.51 + 0.05*sin(u_time*0.53 + 1.371))) , mst.y + 0.05*sin(u_time*(0.53 + 0.1*sin(u_time*0.623)) + 2.173));// (0.5*u_resolution.x/u_resolution.y, 0.5);
+                    vec2 mst = u_mouse.xy/u_resolution.xy;
+                    mst.x *= xmax;
+
+
+                    vec2 c = vec2(mst.x + 0.1*sin(u_time*(0.51 + 0.05*sin(u_time*0.53 + 1.371))) , mst.y + 0.05*sin(u_time*(0.53 + 0.1*sin(u_time*0.623)) + 2.173));// (0.5*u_resolution.x/u_resolution.y, 0.5);
 
 
 
-    if (u_playing == 1.0) {
-        val = (u_volume)*2.5*(1.0 - nsinc(1.0/(u_volume*0.8 + 0.2)*(15.0*(sin(u_time*0.4) + 2.5))*euklid(vec2(st.x, st.y), c), u_time));
+                    if (u_playing == 1.0) {
+                        val = (u_volume)*2.5*(1.0 - nsinc(1.0/(u_volume*0.8 + 0.2)*(15.0*(sin(u_time*0.4) + 2.5))*euklid(vec2(st.x, st.y), c), u_time));
 
-        val += pauseSymbol(st, vec2(0.5*xmax - 0.3, 0.2), vec2(0.6, 0.6));
-    }
-    else {
-        val = 0.2*(1.0 - nsinc((15.0*(sin(u_time*0.2) + 2.5))*euklid(vec2(st.x, st.y), c), 0.0)) + 0.9;
+                        val += pauseSymbol(st, vec2(0.5*xmax - 0.3, 0.2), vec2(0.6, 0.6));
+                    }
+                    else {
+                        val = 0.2*(1.0 - nsinc((15.0*(sin(u_time*0.2) + 2.5))*euklid(vec2(st.x, st.y), c), 0.0)) + 0.9;
 
-        val *= playSymbol(st, vec2(0.5*xmax - 0.3, 0.2), vec2(0.6, 0.6));
-    }
-
-
-    val = clamp(val, 0.0, 1.0);
-
-    val = ((val)*smoothstep(0.0, 0.2, st.y)*smoothstep(1.0, 0.8, st.y)*smoothstep(0.0, 0.2, st.x)*smoothstep(xmax, xmax-0.2, st.x));
+                        val *= playSymbol(st, vec2(0.5*xmax - 0.3, 0.2), vec2(0.6, 0.6));
+                    }
 
 
-    vec3 color = vec3(val);
+                    val = clamp(val, 0.0, 1.0);
+
+                    val = ((val)*smoothstep(0.0, 0.2, st.y)*smoothstep(1.0, 0.8, st.y)*smoothstep(0.0, 0.2, st.x)*smoothstep(xmax, xmax-0.2, st.x));
 
 
-    gl_FragColor = vec4(color,1.0);
-}
-">
- <img id="playButtonImg" src="play.png" width="30px">
-</canvas>
-</a>
+                    vec3 color = vec3(val);
 
 
-<audio id="dafplayer">
-	<source src="http://81.169.184.35:8000/mpd.mp3">
-</audio>
+                    gl_FragColor = vec4(color,1.0);
+                }
+                ">
+                    <img id="playButtonImg" src="play.png" width="30px">
+                </canvas>
+            </a>
+        </div>
 
+        <div>
+            <p style="font-size: x-large; margin-left: 50px; margin-right: 50px;" align="center">
+            <font size="7" color="#ddd">DAF Radio</font> | Dynamische Akustische Forschung | Akademie der Bildenden K&uuml;nste N&uuml;rnberg
+            </p>
+        </div>
 
-<p style="font-size: x-large; margin-left: 50px; margin-right: 50px;" align="center">
-<font size="7" color="#ddd">DAF Radio</font> | Dynamische Akustische Forschung | Akademie der Bildenden Kuenste Nuernberg
-</p>
-
-<script type="text/javascript" src="https://rawgit.com/patriciogonzalezvivo/glslCanvas/master/build/GlslCanvas.js"></script>
-
-<script type="text/javascript">
-
-    var canvas = document.getElementById("glslCanvas");
-    var sandbox = new GlslCanvas(canvas);
-    canvas.style.width = '100%';
-    canvas.style.height = '300px';//document.body.clientHeight*0.6 +"px";//'50%';//'400px';
-
-    var isPlaying = 0;
-
-    var dafplayer= document.getElementById("dafplayer");
-    dafplayer.volume = 1.0;
-    sandbox.setUniform("u_volume", 1.0);
-
-    document.getElementById("playButtonGL").onclick=function () {
-
-        if (isPlaying == 0) {
-            isPlaying = 1;
-            dafplayer.play();
-            document.getElementById("playButtonImg").src = "pause.png"
-            sandbox.setUniform("u_playing", 1.0);
-        }
-        else {
-            isPlaying = 0;
-            dafplayer.pause();
-            document.getElementById("playButtonImg").src = "play.png"
-            sandbox.setUniform("u_playing", 0.0);
-        }
-    };
-
-</script>
+        <div>
 
 
 
-</body>
+        </div>
+
+        <audio id="dafplayer">
+            <source src="http://81.169.184.35:8000/mpd.mp3">
+        </audio>
+
+        <script type="text/javascript" src="https://rawgit.com/patriciogonzalezvivo/glslCanvas/master/build/GlslCanvas.js"></script>
+
+        <script type="text/javascript">
+
+            var canvas = document.getElementById("glslCanvas");
+            var sandbox = new GlslCanvas(canvas);
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';//document.body.clientHeight*0.6 +"px";//'50%';//'400px';
+
+            var isPlaying = 0;
+
+            var dafplayer= document.getElementById("dafplayer");
+            dafplayer.volume = 1.0;
+            sandbox.setUniform("u_volume", 1.0);
+
+            document.getElementById("playButtonGL").onclick=function () {
+
+                if (isPlaying == 0) {
+                    isPlaying = 1;
+                    dafplayer.play();
+                    document.getElementById("playButtonImg").src = "pause.png"
+                    sandbox.setUniform("u_playing", 1.0);
+                }
+                else {
+                    isPlaying = 0;
+                    dafplayer.pause();
+                    document.getElementById("playButtonImg").src = "play.png"
+                    sandbox.setUniform("u_playing", 0.0);
+                }
+            };
+
+        </script>
+    </body>
 </html>
