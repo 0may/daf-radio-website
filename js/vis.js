@@ -7,8 +7,10 @@ var vsteps = 32;
 var cx;
 var cy;
 
+
+
 function setup() {
-    var myCanvas = createCanvas(windowWidth, windowWidth/2);
+    var myCanvas = createCanvas(windowWidth, windowHeight*0.9);
     myCanvas.parent('visContainer');
 
 
@@ -26,51 +28,59 @@ function setup() {
 
 function draw() {
     background(0);
+    noStroke();
 
     cx = width*0.5;
     cy = height*0.5;
 
     if (pausing) {
-        fill(70*constrain((millis() - t0)/500.0, 0.0, 1.0));
+
         noFill();
-        stroke(221*constrain((millis() - t0)/500.0, 0.0, 1.0));
+        strokeWeight(2);
+        stroke(221);
 
         var e2 = height*0.2;
         var h3 = e2*sqrt(3)/3.0;
 
         translate(cx, cy);
 
+        stroke(221);
         triangle(-h3, -e2, -h3, e2, 2*h3, 0);
 
         for (var i = 0; i < 32; i++) {
-            rotate(PI/(64));
-            scale(0.92);
-
+            rotate(PI/(46)*(1.0-constrain((millis()-t0)*0.05, 0, 1.0)));
+            //rotate(PI/46);
+            scale(0.9);
             triangle(-h3, -e2, -h3, e2, 2*h3, 0);
         }
     }
     else if (playing) {
 
-        fill(70*constrain((millis() - t0)/500.0, 0.0, 1.0));
         noFill();
-        stroke(221*constrain((millis() - t0)/500.0, 0.0, 1.0));
+        strokeWeight(2);
 
         var e2 = height*0.2;
         var h3 = e2*sqrt(3)/3.0;
 
         translate(cx, cy);
 
+        stroke(221*(0.8 + 0.2*sin(millis()*0.003 - 0.25)));
         triangle(-h3, -e2, -h3, e2, 2*h3, 0);
 
         for (var i = 0; i < 32; i++) {
-            rotate(PI/(64 + 12*sin(millis()*0.0005)));
-            scale(0.92 + 0.2*frequencyData[i]/255);
-
+            rotate(PI/(46 + 3*sin(millis()*0.0005))*constrain((millis()-t0)*0.008, 0, 1.0));
+            //rotate(PI/(46 + 12*sin(millis()*0.0005))*constrain((millis()-t0)*0.008, 0, 1.0));
+            //scale(0.9);
+            //scale(0.9 + 0.2*frequencyData[i]/255);
+            scale(0.9 + 0.02*frequencyData[i]/255);
+            stroke(221*(0.8 + 0.2*sin(millis()*0.003 + 0.25*i)));
             triangle(-h3, -e2, -h3, e2, 2*h3, 0);
         }
 
         //drawPlaying();
     }
+
+    
 }
 
 

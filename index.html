@@ -2,58 +2,76 @@
 <html>
     <head>
         <title>Dynamische Akustische Forschung</title>
-        <link rel="stylesheet" href="daf.css" />
-        <script defer src="js/fontawesome-all.js"></script>
+        <script src="js/jquery.min.js"></script>
         <script src="js/p5.min.js"></script>
         <script src="js/vis.js"></script>
+        <!--script defer src="js/fontawesome-all.js"></script-->
+
+        <link rel="stylesheet" href="daf.css" />
     </head>
     <body>
-
+<!--
         <h1>Dynamische Akustische Forschung</h1>
 
-        <div align="right" style="margin-right: 50px;">
 
+        <div align="right" style="margin-right: 50px;">
             <a target="_blank" title="DAF on Facebook" href="https://www.facebook.com/DAF-Dynamische-Akustische-Forschung-452551598457326">
                 <i class="fab fa-facebook-square" style="color:#aaa;"></i>
             </a>
-
         </div>
+-->
 
-        <div align="center" style="margin-top:2em; margin-bottom:2em;">
+        <div align="center" style="margin-top:0em; margin-bottom:0em;" >
+            
+            <div id="errDiv"></div>
+
             <a id="audioctrl">
                 <div id="visContainer">
 
                 </div>
             </a>
 
-            <audio id="dafplayer">
-                <source src="http://81.169.184.35:8000/mpd.mp3">
+            <audio id="dafplayer" crossorigin="anonymous">
+                <source src="http://81.169.184.35:8000/daf.mp3">
             </audio>
             <noscript>
                     <audio controls>
-                        <source src="http://81.169.184.35:8000/mpd.mp3">
+                        <source src="http://81.169.184.35:8000/daf.mp3">
                     </audio>
             </noscript>
         </div>
 
-        <div>
+      <!--  <div>
             <p style="font-size: x-large; margin-left: 50px; margin-right: 50px;" align="center">
             <font size="7" color="#ddd">DAF Radio</font> | Dynamische Akustische Forschung | Akademie der Bildenden K&uuml;nste N&uuml;rnberg
             </p>
         </div>
+        -->
 
-        <div>
-
-
-
-        </div>
 
         <script type="text/javascript">
 
             var isPlaying = 0;
 
+
             var dafplayer= document.getElementById("dafplayer");
             dafplayer.volume = 1.0;
+            
+            try {
+                $.get('http://81.169.184.35:8000/daf.mp3', {}, function(res) {}).fail(function() {
+                    document.getElementById("audioctrl").style.display = "none";
+                    var errDiv = document.getElementById("errDiv");
+
+                    errDiv.innerHTML = "CONNECTION TO RADIO STREAM FAILED<br><br>"
+                                        + "Stream URL: <a href='http://81.169.184.35:8000/daf.mp3' target='_blank'><font color='#dda'>http://81.169.184.35:8000/daf.mp3</font></a><br>"
+                                        + "Stream service: <a href='http://81.169.184.35:8000' target='_blank'><font color='#dda'>http://81.169.184.35:8000</font></a>"
+                                        + "<br>Make sure you are allowed to connect to server's port 8000 from your browser/network."
+                });
+            } catch (e) {
+                console.log('catch', e);
+            }
+
+
 
                 
             var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -80,6 +98,8 @@
                 }
             };
 
+            
+
 
             function update() {
         
@@ -92,5 +112,7 @@
             update();
 
         </script>
+
+        
     </body>
 </html>
