@@ -7,14 +7,20 @@ var vsteps = 32;
 var cx;
 var cy;
 
+var font;
+
+function preload() {
+    font = loadFont('assets/AveriaSerifGWF-Regular.ttf');
+}
 
 
 function setup() {
     var myCanvas = createCanvas(windowWidth, windowHeight*0.9);
     myCanvas.parent('visContainer');
 
-
     background(0);
+
+    textFont(font);
 
     vx = new Array(frequencyData.length);
     vy = new Array(frequencyData.length);
@@ -33,18 +39,25 @@ function draw() {
     cx = width*0.5;
     cy = height*0.5;
 
+    fill(100);
+    noStroke();
+    textSize(24);
+    text('Dynamische Akustische Forschung', cx - 0.5*textWidth('Dynamische Akustische Forschung'), 0.9*height);
+    textSize(16);
+    text('Akademie der Bildenden K\u00FCnste N\u00FCrnberg', cx - 0.5*textWidth('Akademie der Bildenden K\u00FCnste N\u00FCrnberg'), 0.9*height+30);
+
+
     if (pausing) {
 
         noFill();
         strokeWeight(2);
-        stroke(221);
+        stroke(180);
 
         var e2 = height*0.2;
         var h3 = e2*sqrt(3)/3.0;
 
-        translate(cx, cy);
+        translate(cx-h3*0.33, cy);
 
-        stroke(221);
         triangle(-h3, -e2, -h3, e2, 2*h3, 0);
 
         for (var i = 0; i < 32; i++) {
@@ -62,7 +75,7 @@ function draw() {
         var e2 = height*0.2;
         var h3 = e2*sqrt(3)/3.0;
 
-        translate(cx, cy);
+        translate(cx-h3*0.33, cy);
 
         stroke(221*(0.8 + 0.2*sin(millis()*0.003 - 0.25)));
         triangle(-h3, -e2, -h3, e2, 2*h3, 0);
@@ -73,7 +86,7 @@ function draw() {
             //scale(0.9);
             //scale(0.9 + 0.2*frequencyData[i]/255);
             scale(0.9 + 0.02*frequencyData[i]/255);
-            stroke(221*(0.8 + 0.2*sin(millis()*0.003 + 0.25*i)));
+            stroke(221*(0.8 + 0.2*sin(millis()*0.002 + 0.25*i)));
             triangle(-h3, -e2, -h3, e2, 2*h3, 0);
         }
 
