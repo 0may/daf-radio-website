@@ -5,21 +5,10 @@
         <script src="js/jquery.min.js"></script>
         <script src="js/p5.min.js"></script>
         <script src="js/vis.js"></script>
-        <!--script defer src="js/fontawesome-all.js"></script-->
 
         <link rel="stylesheet" href="daf.css" />
     </head>
     <body>
-<!--
-        <h1>Dynamische Akustische Forschung</h1>
-
-
-        <div align="right" style="margin-right: 50px;">
-            <a target="_blank" title="DAF on Facebook" href="https://www.facebook.com/DAF-Dynamische-Akustische-Forschung-452551598457326">
-                <i class="fab fa-facebook-square" style="color:#aaa;"></i>
-            </a>
-        </div>
--->
 
         <div align="center" style="margin-top:0em; margin-bottom:0em;" >
             
@@ -40,13 +29,6 @@
                     </audio>
             </noscript>
         </div>
-
-      <!--  <div>
-            <p style="font-size: x-large; margin-left: 50px; margin-right: 50px;" align="center">
-            <font size="7" color="#ddd">DAF Radio</font> | Dynamische Akustische Forschung | Akademie der Bildenden K&uuml;nste N&uuml;rnberg
-            </p>
-        </div>
-        -->
 
 
         <script type="text/javascript">
@@ -76,12 +58,23 @@
                 
             var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             var audioSrc = audioCtx.createMediaElementSource(dafplayer);
+
+            var channelSplitter = audioCtx.createChannelSplitter(2);
+
             var analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 64;
+            analyser.fftSize = 32;
+
+            var analyserR = audioCtx.createAnalyser();
+            analyserR.fftSize = 32;
 
             audioSrc.connect(audioCtx.destination);
-            audioSrc.connect(analyser);
+            audioSrc.connect(channelSplitter);
+            
+            channelSplitter.connect(analyser, 0);
             var frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+            channelSplitter.connect(analyserR, 1);
+            var frequencyDataR = new Uint8Array(analyserR.frequencyBinCount);
 
 
             document.getElementById("audioctrl").onclick=function () {
@@ -106,6 +99,7 @@
                 requestAnimationFrame(update);
 
                 analyser.getByteFrequencyData(frequencyData);
+                analyserR.getByteFrequencyData(frequencyDataR);
                 
             }
 

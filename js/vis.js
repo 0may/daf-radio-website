@@ -3,9 +3,10 @@ var pausing = 1;
 var t0 = 0;
 var vx;
 var vy;
-var vsteps = 32;
 var cx;
 var cy;
+var fftsize;
+var gfx;
 
 var font;
 
@@ -22,12 +23,14 @@ function setup() {
 
     textFont(font);
 
+    fftsize = frequencyData.length;
+
     vx = new Array(frequencyData.length);
     vy = new Array(frequencyData.length);
 
     for (var i = 0; i < frequencyData.length; i++) {
-        vx[i] = new Array(vsteps).fill(-1);
-        vy[i] = new Array(vsteps).fill(-1);
+        vx[i] = new Array(fftsize).fill(-1);
+        vy[i] = new Array(fftsize).fill(-1);
     }
 }
 
@@ -39,7 +42,7 @@ function draw() {
     cx = width*0.5;
     cy = height*0.5;
 
-    fill(100);
+    fill(128);
     noStroke();
     textSize(24);
     text('Dynamische Akustische Forschung', cx - 0.5*textWidth('Dynamische Akustische Forschung'), 0.9*height);
@@ -47,51 +50,7 @@ function draw() {
     text('Akademie der Bildenden K\u00FCnste N\u00FCrnberg', cx - 0.5*textWidth('Akademie der Bildenden K\u00FCnste N\u00FCrnberg'), 0.9*height+30);
 
 
-    if (pausing) {
-
-        noFill();
-        strokeWeight(2);
-        stroke(180);
-
-        var e2 = height*0.2;
-        var h3 = e2*sqrt(3)/3.0;
-
-        translate(cx-h3*0.33, cy);
-
-        triangle(-h3, -e2, -h3, e2, 2*h3, 0);
-
-        for (var i = 0; i < 32; i++) {
-            rotate(PI/(46)*(1.0-constrain((millis()-t0)*0.05, 0, 1.0)));
-            //rotate(PI/46);
-            scale(0.9);
-            triangle(-h3, -e2, -h3, e2, 2*h3, 0);
-        }
-    }
-    else if (playing) {
-
-        noFill();
-        strokeWeight(2);
-
-        var e2 = height*0.2;
-        var h3 = e2*sqrt(3)/3.0;
-
-        translate(cx-h3*0.33, cy);
-
-        stroke(221*(0.8 + 0.2*sin(millis()*0.003 - 0.25)));
-        triangle(-h3, -e2, -h3, e2, 2*h3, 0);
-
-        for (var i = 0; i < 32; i++) {
-            rotate(PI/(46 + 3*sin(millis()*0.0005))*constrain((millis()-t0)*0.008, 0, 1.0));
-            //rotate(PI/(46 + 12*sin(millis()*0.0005))*constrain((millis()-t0)*0.008, 0, 1.0));
-            //scale(0.9);
-            //scale(0.9 + 0.2*frequencyData[i]/255);
-            scale(0.9 + 0.02*frequencyData[i]/255);
-            stroke(221*(0.8 + 0.2*sin(millis()*0.002 + 0.25*i)));
-            triangle(-h3, -e2, -h3, e2, 2*h3, 0);
-        }
-
-        //drawPlaying();
-    }
+    drawSymbols();
 
     
 }
@@ -111,9 +70,109 @@ function visPause() {
 }
 
 
-function drawPlaying() {
+
+
+function drawSymbols() {
+
+    var symb;
+    textSize(192);
+    fill(128);
+    noStroke();
+
+    if (playing) {
+        symb = '=';
+
+        push();
+
+        translate(cx - 0.5*textWidth(symb), cy - 0.333*textAscent());
+        rotate(HALF_PI);
+
+        text(symb, 0, 0);
+
+        var nrg = 0;
+        var nrgR = 0;
+        for (var i = 1; i < fftsize; i++) {
+            nrg += frequencyData[i]*frequencyData[i];
+            nrgR += frequencyDataR[i]*frequencyDataR[i];
+        }
+        nrg /= (fftsize-1)*255*255;
+        nrgR /= (fftsize-1)*255*255;
+
+
+        fill(0, 0, 0);
+        rect(0, 0, textWidth(symb)*(0.8 - 0.7*nrg), -0.333*textAscent());
+        rect(0, -0.333*textAscent(), textWidth(symb)*(0.8 - 0.7*nrgR), -0.333*textAscent());
+
+
+        stroke(128);
+        strokeWeight(3);
+        noFill();
+        text(symb, 0, 0);
+
+        pop();
+    }
+    else if (pausing) {
+        symb = '>';
+        text(symb, cx - 0.5*textWidth(symb), cy + 0.333*textAscent()); 
+    }
+
+
+}
+
+
+
+
+function drawTriangles() {
+
+    if (pausing) {
+
+        noFill();
+        strokeWeight(2);
+        stroke(180);
+
+        var e2 = height*0.2;
+        var h3 = e2*sqrt(3)/3.0;
+
+        translate(cx-h3*0.33, cy);
+
+        triangle(-h3, -e2, -h3, e2, 2*h3, 0);
+
+        for (var i = 0; i < fftsize; i++) {
+            rotate(PI/(46)*(1.0-constrain((millis()-t0)*0.05, 0, 1.0)));
+            //rotate(PI/46);
+            scale(0.9);
+            triangle(-h3, -e2, -h3, e2, 2*h3, 0);
+        }
+    }
+    else if (playing) {
+
+        noFill();
+        strokeWeight(2);
+
+        var e2 = height*0.2;
+        var h3 = e2*sqrt(3)/3.0;
+
+        translate(cx-h3*0.33, cy);
+
+        stroke(221*(0.8 + 0.2*sin(millis()*0.003 - 0.25)));
+        triangle(-h3, -e2, -h3, e2, 2*h3, 0);
+
+        for (var i = 0; i < fftsize; i++) {
+            rotate(PI/(46 + 3*sin(millis()*0.0005))*constrain((millis()-t0)*0.008, 0, 1.0));
+            //rotate(PI/(46 + 12*sin(millis()*0.0005))*constrain((millis()-t0)*0.008, 0, 1.0));
+            //scale(0.9);
+            //scale(0.9 + 0.2*frequencyData[i]/255);
+            scale(0.9 + 0.02*frequencyData[i]/255);
+            stroke(221*(0.8 + 0.2*sin(millis()*0.002 + 0.25*i)));
+            triangle(-h3, -e2, -h3, e2, 2*h3, 0);
+        }
+    }
+}
+
+
+function drawTriangleFans() {
     var n = frequencyData.length;
-    var elength = height/vsteps*0.5;
+    var elength = height/fftsize*0.5;
 
 
     stroke(221);
@@ -124,7 +183,7 @@ function drawPlaying() {
 
     for (var i = 0; i < n; i++) {
 
-        var f = floor(frequencyData[i]/256.0*vsteps);
+        var f = floor(frequencyData[i]/256.0*fftsize);
 
         beginShape(TRIANGLE_FAN);
 
@@ -159,10 +218,11 @@ function drawPlaying() {
 
         endShape();
 
-        for (var j = f; j < vsteps; j++) {
+        for (var j = f; j < fftsize; j++) {
             vy[i][j] = -1;
         }
         
         rotate(TWO_PI/n*3);
     }
 }
+
